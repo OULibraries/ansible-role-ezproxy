@@ -1,0 +1,28 @@
+[Unit]
+Description=EZProxy
+Documentation=https://help.oclc.org/Library_Management/EZproxy
+PartOf=Network.target
+After=fs.target nss-lookup.target  network-online.target
+
+[Service]
+Type=forking
+WorkingDirectory=/srv/ezproxy
+ExecStart=/srv/ezproxy/ezproxy_prod/ezproxy start
+ExecStop=/srv/ezproxy/ezproxy_prod/ezproxy stop
+ExecReload=/srv/ezproxy/ezproxy_prod/ezproxy restart
+KillMode=none
+Restart=on-failure
+RestartSec=3
+
+
+[Install]
+WantedBy=multi-user.target
+Alias=ezproxy.service
+
+# Installation:
+#
+# Edit this file to /srv/ezproxy/ezproxy.service 
+# ln -s /srv/ezproxy/ezproxy.service /etc/systemd/system/ezproxy.service 
+# systemctl daemon-reload 
+# systemctl enable ezproxy.service
+# systemctl start ezproxy.service  

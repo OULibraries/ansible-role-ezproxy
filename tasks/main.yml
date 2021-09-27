@@ -1,0 +1,83 @@
+---
+
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: Add EZProxy Group
+      group:
+        name: ezproxy
+        state: present
+    
+    - name: Add EZProxy user
+      user:
+        name: ezproxy
+        group: ezproxy
+        home: /srv/ezproxy/
+        create_home: yes
+        shell: /sbin/nologin
+        system: yes
+        state: present
+ 
+    - name: Copy EZProxy config
+      copy:
+        src: ../config/
+        dest: /srv/ezproxy/
+        owner: root
+        group: root
+        mode: '0755'
+   
+    - name: Copy new EZProxy 7.x binary
+      copy: 
+        src: ezproxy
+        dest: /srv/ezproxy/
+        owner: root
+        group: root
+        mode: '0755'
+    
+    - name: Re-validate WSkey
+      command: /srv/ezproxy/ezproxy -k 123456789101112
+      become: yes
+
+    - name: Copy GeoIP update tarball
+      copy:
+        src: geoipupdate_4.8.0_linux_amd64.rpm
+        dest: /usr/local/
+        owner: root
+        group: root
+        mode: '0755'
+
+    # installs GeoIPupdate to /usr/bin/
+    - name: Install GeoIPupdate rpm
+      yum:
+        name: /usr/local/geoipupdate_4.8.0_linux_amd64.rpm
+        state: present
+
+    - name: Copy GeoIP.conf
+      copy:
+        src: GeoIP.conf
+        dest: /etc
+        owner: root
+        group: root
+        mode: '0755'
+ 
+    - name: Add crontab entry for GeoIP update
+      ansible.builtin.cron:
+        name: GeoID update
+        job: "MAILTO=mpmalahy@ou.edu 0 0 * * 0 /usr/local/bin/geoipupdate"
+        cron_file: ansible_geoipupdate
+        user: root
+
+    - name: Install service definition
+      copy:
+        src: ezproxy.service
+        dest: /etc/systemd/system/
+        owner: root
+        group: root
+        mode: '0755'
+   
+    - name: Start ezproxy
+      service:
+        name: ezproxy
+        state: started
+    
