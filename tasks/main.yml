@@ -27,35 +27,33 @@
   command: /srv/ezproxy/ezproxy -k 123456789101112
   become: yes
 
-# - name: Copy GeoIP update tarball
-#   copy:
-#     src: geoipupdate_4.8.0_linux_amd64.rpm
-#     dest: /usr/local/src/
-#     owner: root
-#     group: root
-#     mode: '0755'
-
-# installs GeoIPupdate to /usr/bin/
-# - name: Install GeoIPupdate rpm
-#   yum:
-#     name: geoipupdate
-#     state: present
- 
 - name: Install GeoIP update cron package
   yum:
     name:
      -  geoipupdate
      -  geoipupdate-cron
       
-
 - name: Copy GeoIP.conf.j2
   template:
     src: GeoIP.conf.j2
     dest: /etc/GeoIP.conf
     owner: root
     group: root
+    mode: '0644'
+
+- name: Make GeoIP data directory
+  file:
+    path: /usr/share/GeoIP
+    state: directory
+    owner: root
+    group: root
     mode: '0755'
 
+- name: Run GeoIP update
+  command: /usr/bin/geoipupdate
+  args:
+    creates: /usr/share/GeoIP/GeoLite2-City.mmdb
+     
 - name: Install service definition
   copy:
     src: ezproxy.service
