@@ -62,6 +62,28 @@
     group: root
     mode: '0644'
 
+- name: copy log maintenance script
+  copy:
+    src: ezproxy-log-perms.sh
+    dest: /srv/ezproxy/bin/ezproxy-log-perms.sh
+    owner: root
+    group: wheel
+    mode: '0755'
+
+- name: copy log rotation script
+  copy:
+    src: ezproxy-log-rotate.sh
+    dest: /srv/ezproxy/bin/ezproxy-log-rotate.sh
+    owner: root
+    group: wheel
+    mode: '0755'
+
+- cron: 
+    name: "ezproxy log rotation"
+    minute: "00"
+    hour: "02"
+    job: "/srv/ezproxy/bin/ezproxy-log-rotate.sh"
+
 - name: Start ezproxy
   service:
     name: ezproxy
