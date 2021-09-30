@@ -15,6 +15,14 @@
     system: yes
     state: present
 
+- name: Verify new exproxy ownership
+  file: 
+    dest: /srv/ezproxy
+    owner: ezproxy 
+    group: ezproxy 
+    recurse: yes
+
+
 - name: Copy new EZProxy 7.x binary
   copy: 
     src: ezproxy-linux.bin-7.1.14
