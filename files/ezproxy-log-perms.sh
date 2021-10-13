@@ -5,8 +5,8 @@ if [[ $(id -u) -ne 0 ]]
   exit
 fi
 
-chown -v root:wheel /srv/ezproxy/log/*
+chown -v ezproxy:ezproxy /srv/ezproxy/log/*
 chmod -v g+rw /srv/ezproxy/log/*
  
-chown -v root:wheel /srv/ezproxy/audit/*
+chown -v ezproxy:ezproxy /srv/ezproxy/audit/*
 chmod -v g+rw /srv/ezproxy/audit/*
