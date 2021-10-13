@@ -1,11 +1,11 @@
 ---
 
 handlers:
-  - name: Restart EZproxy
+  - name: Restart Service
     service:
       name: ezproxy
       state: restarted
-    listen: "finalize installation"
+    listen: "Restart EZproxy"
 
 tasks:
   - name: Add EZProxy Group
@@ -29,20 +29,19 @@ tasks:
       owner: ezproxy 
       group: ezproxy 
       recurse: yes
-  
-  
-  - name: Copy new EZProxy 7.x binary
     copy: 
       src: ezproxy-linux.bin-7.1.14
       dest: /srv/ezproxy/ezproxy
       owner: ezproxy
       group: ezproxy
       mode: '0750'
-  
+    notify: "Restart EZproxy"
+ 
   - name: Install EZproxy WSkey
     command: /srv/ezproxy/ezproxy -k {{ ezproxy_wskey }}
     become: yes
-  
+    notify: "Restart EZproxy"
+
   - name: Install GeoIP update cron package
     yum:
       name:
@@ -101,10 +100,6 @@ tasks:
       hour: "02"
       job: "/srv/ezproxy/bin/ezproxy-log-rotate.sh"
   
-  - name: finalize installation
-    command: echo "EZproxy service will now restart"
-    notify: "restart EZproxy"
-
   - name: Verify EZproxy is started
     service:
       name: ezproxy
