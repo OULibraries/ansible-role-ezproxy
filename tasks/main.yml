@@ -1,108 +1,102 @@
 ---
 
-handlers:
-  - name: Restart Service
-    service:
-      name: ezproxy
-      state: restarted
-    listen: "Restart EZproxy"
+- name: Add EZProxy Group
+  group:
+    name: ezproxy
+    state: present
 
-tasks:
-  - name: Add EZProxy Group
-    group:
-      name: ezproxy
-      state: present
-  
-  - name: Add EZProxy user
-    user:
-      name: ezproxy
-      group: ezproxy
-      home: /srv/ezproxy/
-      create_home: yes
-      shell: /sbin/nologin
-      system: yes
-      state: present
-  
-  - name: Verify new exproxy ownership
-    file: 
-      dest: /srv/ezproxy
-      owner: ezproxy 
-      group: ezproxy 
-      recurse: yes
-    copy: 
-      src: ezproxy-linux.bin-7.1.14
-      dest: /srv/ezproxy/ezproxy
-      owner: ezproxy
-      group: ezproxy
-      mode: '0750'
-    notify: "Restart EZproxy"
- 
-  - name: Install EZproxy WSkey
-    command: /srv/ezproxy/ezproxy -k {{ ezproxy_wskey }}
-    become: yes
-    notify: "Restart EZproxy"
+- name: Add EZProxy user
+  user:
+    name: ezproxy
+    group: ezproxy
+    home: /srv/ezproxy/
+    create_home: yes
+    shell: /sbin/nologin
+    system: yes
+    state: present
 
-  - name: Install GeoIP update cron package
-    yum:
-      name:
-       -  geoipupdate
-       -  geoipupdate-cron
-        
-  - name: Copy GeoIP.conf.j2
-    template:
-      src: GeoIP.conf.j2
-      dest: /etc/GeoIP.conf
-      owner: root
-      group: root
-      mode: '0644'
-  
-  - name: Make GeoIP data directory
-    file:
-      path: /usr/share/GeoIP
-      state: directory
-      owner: root
-      group: root
-      mode: '0755'
-  
-  - name: Run GeoIP update
-    command: /usr/bin/geoipupdate
-    args:
-      creates: /usr/share/GeoIP/GeoLite2-City.mmdb
-       
-  - name: Install service definition
-    copy:
-      src: ezproxy.service
-      dest: /etc/systemd/system/
-      owner: root
-      group: root
-      mode: '0644'
-  
-  - name: copy log maintenance script
-    copy:
-      src: ezproxy-log-perms.sh
-      dest: /srv/ezproxy/bin/ezproxy-log-perms.sh
-      owner: ezproxy
-      group: ezproxy
-      mode: '0755'
-  
-  - name: copy log rotation script
-    copy:
-      src: ezproxy-log-rotate.sh
-      dest: /srv/ezproxy/bin/ezproxy-log-rotate.sh
-      owner: ezproxy
-      group: ezproxy
-      mode: '0755'
-  
-  - cron: 
-      name: "ezproxy log rotation"
-      user: ezproxy
-      minute: "00"
-      hour: "02"
-      job: "/srv/ezproxy/bin/ezproxy-log-rotate.sh"
-  
-  - name: Verify EZproxy is started
-    service:
-      name: ezproxy
-      enabled: yes
-      state: started
-  
+- name: Verify new EZproxy ownership
+  file: 
+    dest: /srv/ezproxy
+    owner: ezproxy 
+    group: ezproxy 
+    recurse: yes
+
+- name: Copy new EZproxy 7.x binary
+  copy: 
+    src: ezproxy-linux.bin-7.1.14
+    dest: /srv/ezproxy/ezproxy
+    owner: ezproxy
+    group: ezproxy
+    mode: '0750'
+  notify: "Restart EZproxy"
+
+- name: Install EZproxy WSkey
+  command: /srv/ezproxy/ezproxy -k {{ ezproxy_wskey }}
+  become: yes
+  notify: "Restart EZproxy"
+
+- name: Install GeoIP update cron package
+  yum:
+    name:
+     -  geoipupdate
+     -  geoipupdate-cron
+      
+- name: Copy GeoIP.conf.j2
+  template:
+    src: GeoIP.conf.j2
+    dest: /etc/GeoIP.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Make GeoIP data directory
+  file:
+    path: /usr/share/GeoIP
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Run GeoIP update
+  command: /usr/bin/geoipupdate
+  args:
+    creates: /usr/share/GeoIP/GeoLite2-City.mmdb
+     
+- name: Install service definition
+  copy:
+    src: ezproxy.service
+    dest: /etc/systemd/system/
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: copy log maintenance script
+  copy:
+    src: ezproxy-log-perms.sh
+    dest: /srv/ezproxy/bin/ezproxy-log-perms.sh
+    owner: ezproxy
+    group: ezproxy
+    mode: '0755'
+
+- name: copy log rotation script
+  copy:
+    src: ezproxy-log-rotate.sh
+    dest: /srv/ezproxy/bin/ezproxy-log-rotate.sh
+    owner: ezproxy
+    group: ezproxy
+    mode: '0755'
+
+- cron: 
+    name: "ezproxy log rotation"
+    user: ezproxy
+    minute: "00"
+    hour: "02"
+    job: "/srv/ezproxy/bin/ezproxy-log-rotate.sh"
+
+- name: Verify EZproxy is started
+  service:
+    name: ezproxy
+    enabled: yes
+    state: started
+

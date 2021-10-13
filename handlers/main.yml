@@ -1,2 +1,9 @@
 ---
 # handlers file for OULibraries.ezproxy
+
+- name: Restart Service
+  service:
+    name: ezproxy
+    state: restarted
+  listen: "Restart EZproxy"
+
